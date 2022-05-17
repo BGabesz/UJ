@@ -1,0 +1,84 @@
+@charset "utf-8";
+body{
+    max-width: 90%;
+    margin: auto;
+    font-family: "Helvetica", Sans-serif;
+}
+.ingatlan, .ingatlanok-fejlec{
+    text-align: center;
+    border-top: 1px solid rgb(206, 206, 206);
+    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr 4fr 2fr 1fr 3fr 1fr 1fr 1fr;
+}
+.ingatlan p,.ingatlanok-fejlec p{
+    margin-right: 4px;
+    margin-left: 4px;
+}
+.leirasa{
+    text-align: left;
+}
+.fenykepe{
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 3px;
+}
+.hirdetesTorles{
+    padding: 0px;
+}
+.tehermentese{
+    color: rgb(46, 138, 138);
+}
+.ingatlanok-fejlec .tehermentese{
+    color: black;
+}
+.ingatlan{
+    background-color: whitesmoke;
+}
+@media only screen and (max-width:900px) {
+    .fenykepe{
+        max-width: 100px;
+    }
+}
+@media only screen and (max-width:500px) {
+    body{
+        background-color: rgb(105, 105, 233);
+    }
+    .ingatlanok-fejlec,.tehermentese{
+        display: none;
+    }
+    .ingatlanok{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        
+    }
+    .ingatlan{
+        grid-template-columns: 1fr;
+        text-align: left;
+        margin: 4px;
+        border-top: none;
+        padding: 3px;
+        
+    }
+    .ingatlan p{
+        margin: 0px;
+        padding: 3px
+    }
+
+    .kategoriaja{ 
+        background-color: rgb(190, 190, 190);
+        color: aliceblue;
+    }
+    .fenykepe{
+        width: 100%;
+        max-width: 200px;
+
+    }
+    .hirdetesTorles,.hirdetesModosit{
+        margin-top: 5px;
+        margin-right: auto;
+        margin-left: auto;
+        width: 60px;
+    }
+}
