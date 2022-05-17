@@ -1,0 +1,285 @@
+<button class="hirdetesTorles" type="submit">Törlés</button>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../js/ajax.js"></script>
+<link href="../css/css.css" rel="stylesheet" type="text/css" />
+<form class="ujHirdetes">
+                <label>Ingatlan kategóriája</label><br><select class="kategoria"></select><br>
+		<label>Ingatlan leírása</label><br><input class="leiras" type="text" required><br>
+</form>
+<img class="fenykepe" src="img_girl.jpg" alt="">
+<button class="hirdetesTorles" type="submit">Törlés</button>
+
+Schema::create('kategorias', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('nev')->unique();
+            $table->timestamps();
+        });
+
+Schema::create('ingatlans', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('kategoria')->unsigned();
+            $table->foreign('kategoria')->references('id')->on('kategorias');
+            $table->string('leiras');
+            $table->date('hirdetesDatuma');
+            $table->boolean('tehermentes');
+            $table->integer('ar');
+            $table->string('kepUrl');
+            $table->timestamps();
+        });
+
+protected $fillable = ['kategoria','leiras','hirdetesDatuma','tehermentes','ar','kepUrl'];
+
+Route::apiResource('ingatlan', IngatlanokController::class);
+Route::apiResource('kategoria', KategoriakController::class);
+/* Route::get("ingatlanindex",[IngatlanokController::class,"index"]); */
+
+use App\Models\Kategoria;
+use App\Models\Ingatlan;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+class IngatlanokController extends Controller{
+    public function index(){
+
+        $tabla=Ingatlan::join('kategorias','kategorias.id','ingatlans.kategoria')
+        ->select('*','ingatlans.id as ingatlanId');
+        return response()->json($tabla->get());
+    }
+    public function store(Request $request){
+        $kategoria=$request->input("kategoria");
+        $datum=$request->input("datum");
+        $leiras=$request->input("leiras");
+        $tehermentes=$request->input("tehermentes");
+        $ar=$request->input("ar");
+        $kep=$request->input("kep");
+        $ingatlan=new Ingatlan;
+        $ingatlan->kategoria=$kategoria;
+        $ingatlan->leiras=$leiras;
+        if($datum){
+            $ingatlan->hirdetesDatuma=$datum;
+        }else{
+            $ingatlan->hirdetesDatuma=Carbon::now();
+        }
+        /* if($tehermentes===true){
+            $tehermentes=1;
+        }else{
+            $tehermentes=0;
+        } */
+        $ingatlan->tehermentes=$tehermentes;
+        $ingatlan->ar=$ar;
+        $ingatlan->kepUrl=$kep;
+        $ingatlan->save();
+        return response()->json(true);
+    }
+    public function destroy(string $id){
+        Ingatlan::find($id)->delete();
+        return response()->json(true);
+     }
+     public function update(Request $request, string $id){
+        $kategoria=$request->input("kategoria");
+        $datum=$request->input("datum");
+        $leiras=$request->input("leiras");
+        $tehermentes=$request->input("tehermentes");
+        $ar=$request->input("ar");
+        $kep=$request->input("kep");
+        /* if($tehermentes===true){
+            $tehermentes=0;
+        }else{
+            $tehermentes=1;
+        } */
+        $tabla=Ingatlan::find($id)
+        ->update([
+            'kategoria' => $request->kategoria,
+            'leiras' => $request->leiras,
+            'hirdetesDatuma' => $request->datum,
+            'tehermentes' => $tehermentes,
+            'ar' => $request->ar,
+            'kepUrl' => $request->kep,
+            ]);
+            /* >update([
+            'kategoria' => $request->kategoria,
+            'leiras' => $request->leiras,
+            'hirdetesDatuma' => $request->datum,
+            'tehermentes' => $request->tehermentes,
+            'ar' => $request->ar,
+            'kepUrl' => $request->kep,
+            ]); */
+        /* $tabla -> kategoria = $kategoria;
+        $tabla -> hirdetesDatuma = $datum;
+        $tabla -> leiras =$leiras;
+        $tabla -> tehermentes = $tehermentes;
+        $tabla -> ar = $ar;
+        $tabla -> kepUrl = $kep; */
+        /* $tabla->save(); */
+        return response()->json(true);
+    }
+}
+
+class MyAjax {
+    constructor() {}
+    
+    adatbeolvas(faljnev, tomb, myCallback) {
+     tomb=[];
+      $.ajax({
+        url: faljnev,
+        type: "GET",
+        success: function (result) {
+          result.forEach((value) => {
+            tomb.push(value);
+          });
+          myCallback(tomb);
+        },
+      });
+    }
+  
+    adatkuldes(faljnev, adat) {
+      $.ajax({
+        url: faljnev,
+        type: "POST",
+        data: adat,
+        success: function (result) {
+          console.log(result);
+        },
+      });
+    }
+  
+    adattorles(faljnev, id) {
+      $.ajax({
+        url: faljnev + "/" + id,
+        type: "DELETE",
+        success: function (result) {
+          console.log(result);
+        },
+      });
+    }
+  
+    adatmodosit(faljnev, adat, id) {
+      $.ajax({
+        url: faljnev + "/" + id,
+        type: "PUT",
+        data: adat,
+        success: function (result) {
+          console.log(result);
+        },
+      });
+    }
+  }
+
+class Ingatlan {
+    constructor(node,adat)  {
+      this.node = node;
+      this.adat = adat;
+      this.kategoria = this.node.children(".kategoriaja");
+      this.leiras = this.node.children(".leirasa");
+      this.setAdat(this.adat);
+
+      this.torolhirdetes = this.node.children(".hirdetesTorles");
+      
+      this.torolhirdetes.on("click ", () => {
+        this.kattintasTrigger("torolhirdetes");
+      });
+    }
+    kattintasTrigger(esemenyneve) {
+      let esemeny = new CustomEvent(esemenyneve, {
+          detail: this.adat,
+      });
+      window.dispatchEvent(esemeny);
+    }
+    setAdat(adat){
+      this.adat = adat;
+      this.kategoria.text(adat.nev);
+      this.leiras.text(adat.leiras);
+      if(adat.tehermentes===1){
+        this.tehermentes.text("igen");
+      }else{
+        this.tehermentes.text("nem");
+      }
+      this.fenykep.attr("src", "../kepek/"+adat.kepUrl);
+      this.fenykep.attr("alt", adat.kepUrl);
+    }
+}
+
+$(function () {
+    const myAjax = new MyAjax();
+    $(".modosit").hide();
+    $(".segedId").hide();
+
+    let apiIngatlan = "/api/ingatlan";
+    let apiKategoriat = "/api/kategoria";
+    myAjax.adatbeolvas(apiIngatlan, false, ingatlan);
+    function ingatlan(ingatlanok) {
+        console.log(ingatlanok);
+        const szuloElem = $(".ingatlanok");
+        const sablonElem = $("footer .ingatlan ");
+        sablonElem.show();
+        szuloElem.empty();
+        ingatlanok.forEach(function (elem) {
+            let node = sablonElem.clone().appendTo(szuloElem);
+            new Ingatlan(node, elem);
+        });
+        sablonElem.hide();
+        $("footer .szemely").hide();
+    }
+    myAjax.adatbeolvas(apiKategoriat, false, kategoriaValasztas);
+    function kategoriaValasztas(kategoriak){
+        let seged=[];
+        for (let index = 0; index < kategoriak.length; index++) {
+            seged+='<option value="'+kategoriak[index].id+'">'+kategoriak[index].nev+'</option>'
+        }
+        $(".kategoria").html(seged)
+    }
+    $(".kuld").on("click ", () => {
+        let seged;
+        if($(".tehermentes").prop("checked")===true){
+            seged=1;
+          }else{
+              seged=0;
+          }
+        szoveg = {
+            kategoria:$(".kategoria").val(),
+            datum: $(".datum").val(),
+            tehermentes:seged,
+        };
+        myAjax.adatkuldes(apiIngatlan, szoveg);
+        window.location.reload();
+      });
+      
+      $(window).on('torolhirdetes', (event) => {
+        console.log("torlove");
+        console.log(event.detail);
+        myAjax.adattorles(apiIngatlan, event.detail.ingatlanId)
+        window.location.reload();
+      });
+      $(window).on('modositHirdetes', (event) => {
+        $(".kategoria").val(event.detail.id);
+        $(".datum").val(event.detail.hirdetesDatuma);
+        if(event.detail.tehermentes===1){
+            $(".tehermentes").prop("checked", true);
+        }else{
+            $(".tehermentes").prop("checked", false);
+        }
+        $(".fenykep").val(event.detail.kepUrl);
+        $(".ar").val(event.detail.ar);
+        $(".kuld").hide();
+        $(".modosit").show();
+      });
+      $(".modosit").on("click ", () => {
+          let seged="";
+          if($(".tehermentes").prop("checked")===true){
+            seged=1;
+          }else{
+              seged=0;
+          }
+          let adat={
+              kategoria:$(".kategoria").val(),
+              datum: $(".datum").val(),
+              tehermentes: seged,
+          }
+          myAjax.adatmodosit(apiIngatlan, adat, $(".segedId").val());
+          window.location.reload();
+      });
+      $(window).on('erdekelHirdetes', (event) => {
+          console.log("lalala");
+          alert(event.detail.nev+"\n"+event.detail.leiras+"\n"+event.detail.hirdetesDatuma+"\n"+event.detail.kepUrl+"\n");
+      });
+});
